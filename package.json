@@ -18,7 +18,11 @@
   },
   "homepage": "https://github.com/jazun33/roguelands#readme",
   "dependencies": {
+    "bson": "^0.3.2",
     "express": "^4.12.4",
+    "gulp": "^3.8.11",
+    "gulp-nodemon": "^2.0.3",
+    "mongoose": "^4.0.4",
     "socket.io": "^1.3.5"
   }
 }
