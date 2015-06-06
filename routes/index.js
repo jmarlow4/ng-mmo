@@ -19,6 +19,10 @@ module.exports = function(passport){
     res.sendFile('index.html', { message: req.flash('message') });
   });
 
+  router.get('/friends', function(req, res) {
+    res.send('hey!');
+  });
+
   ///* Handle Login POST */
   //router.post('/login', passport.authenticate('login', {
   //  successRedirect: '/home',

@@ -30,5 +30,11 @@
     "passport": "~0.2.2",
     "passport-local": "~1.0.0",
     "serve-favicon": "~2.2.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-livereload": "^3.8.0",
+    "gulp-nodemon": "^2.0.3",
+    "gulp-notify": "^2.2.0"
   }
 }

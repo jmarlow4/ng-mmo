@@ -5,4 +5,22 @@ html, body {
 
 body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  background: #1f2324;
+}
+
+header {
+  height: 110px;
+  width: 100%;
+  padding: 6px 0;
+  box-sizing: border-box;
+  background: #3f7e8e;
+}
+nav {
+  height: 98px;
+  width: 1280px;
+  margin: 0 auto;
+}
+
+canvas {
+  margin: 20px auto;
 }
