@@ -1,0 +1,92 @@
+<div class="sign-in">
+  <h1>Register</h1>
+
+  <a href="/login" class="alt-link">Log In</a>
+
+  <form class="loginForm" name="form" ng-submit="register(form)" novalidate>
+    <div class="form-group"
+         ng-class="{
+                     'has-warning': form.email.$dirty,
+                     'has-success': form.email.$valid && form.email.$dirty && !form.email.$error.mongoose,
+                     'has-error': form.email.$invalid && form.email.$dirty || form.email.$error.mongoose
+                     }">
+      <input class="form-control"
+             placeholder="email address"
+             type="email"
+             name="email"
+             ng-model="user.email"
+             required
+             autofocus
+             on-focus
+             mongoose-error/>
+
+      <p class="help-block"
+         ng-show="form.email.$error.email && !form.email.$focused">
+        Not a valid email.
+      </p>
+
+      <p class="help-block"
+         ng-show="form.email.$error.mongoose">
+        {{ errors.email }}
+      </p>
+    </div>
+
+    <div class="form-group"
+         ng-class="{
+                     'has-warning': form.username.$dirty,
+                     'has-success': form.username.$valid && form.username.$dirty && !form.username.$error.mongoose,
+                     'has-error': form.username.$invalid && form.username.$dirty || form.username.$error.mongoose
+                     }">
+      <input class="form-control"
+             placeholder="username"
+             type="text"
+             name="username"
+             ng-model="user.username"
+             required
+             unique-username
+             mongoose-error/>
+
+      <p class="help-block"
+         ng-show="form.username.$error.unique && form.username">
+        That username is already taken.
+      </p>
+
+      <p class="help-block"
+         ng-show="form.password.$error.mongoose">
+        {{ errors.username }}
+      </p>
+    </div>
+
+    <div class="form-group"
+         ng-class="{'has-warning': form.password.$dirty,
+                    'has-success': form.password.$valid && form.password.$dirty && !form.password.$error.mongoose,
+                    'has-error': form.password.$invalid && form.password.$dirty || form.password.$error.mongoose
+                    }">
+      <input class="form-control"
+             placeholder="password"
+             type="password"
+             name="password"
+             ng-model="user.password"
+             ng-minlength="5"
+             required
+             mongoose-error/>
+
+      <p class="help-block"
+         ng-show="(form.password.$error.minlength || form.password.$invalid)
+                                && form.password.$dirty
+                                && !form.password.$error.required">
+        Password must be at least 5 characters.
+      </p>
+
+      <p class="help-block"
+         ng-show="form.password.$error.mongoose">
+        {{ errors.password }}
+      </p>
+    </div>
+    <br/>
+    <button class="btn btn-lg btn-primary btn-block"
+            type="submit"
+            ng-disabled="form.$invalid">SUBMIT
+    </button>
+  </form>
+</div>

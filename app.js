@@ -11,6 +11,8 @@ mongoose.connect(dbConfig.url);
 
 var app = express();
 
+app.set('view engine', 'html');
+
 app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -38,7 +40,7 @@ app.use(passport.session());
 var initPassport = require('./passport/init');
 initPassport(passport);
 
-var routes = require('./routes/index')(passport);
+var routes = require('./routes/index');
 app.use('/', routes);
 
 // catch 404 and forward to error handler

@@ -2,8 +2,12 @@
 <html ng-app="rl-app">
 <head>
   <title>Roguelands</title>
+  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" href="bower_components/angular-bootstrap/ui-bootstrap-csp.css">
+  <link rel="stylesheet" href="bower_components/ngDialog/css/ngDialog.css">
+  <link rel="stylesheet" href="bower_components/ngDialog/css/ngDialog-theme-default.css">
   <link rel="stylesheet" href="style/style.css">
+  <base href="/">
 </head>
 <body>
 
@@ -12,9 +16,12 @@
 
 <script src="bower_components/angular/angular.js"></script>
 <script src="bower_components/angular-route/angular-route.js"></script>
+<script src="bower_components/angular-resource/angular-resource.js"></script>
 <script src="bower_components/angular-socket-io/socket.js"></script>
 <script src="bower_components/angular-cookies/angular-cookies.js"></script>
 <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+<script src="bower_components/ngDialog/js/ngDialog.js"></script>
+<script src="bower_components/angular-http-auth/src/http-auth-interceptor.js"></script>
 <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 <script src="bower_components/phaser/build/phaser.js"></script>
 
@@ -23,12 +30,15 @@
 <script src="js/navbar/navService.js"></script>
 <script src="js/navbar/navDir.js"></script>
 
+<script src="js/login/authService.js"></script>
+<script src="js/login/sessionService.js"></script>
+<script src="js/login/userService.js"></script>
+<script src="js/login/loginCtrl.js"></script>
+
+<script src="js/game/gameService.js"></script>
 <script src="js/game/gameCtrl.js"></script>
 <script src="js/game/gameCanvasDir.js"></script>
-<script src="js/game/gameService.js"></script>
 <script src="js/game/game.js"></script>
-
-
 
 <div><!--<div class="container">-->
   <!--<div class="row">-->

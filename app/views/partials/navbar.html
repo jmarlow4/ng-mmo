@@ -1,0 +1,18 @@
+<header>
+<nav>
+  <a class="homeBtn" href="/">
+    <img src="../../img/rl-logo.png">
+  </a>
+
+  <ul class="subnav">
+    <li ng-show="!currentUser" ng-click="openLogin()">
+      <img class="linkIcon" src="../../img/LoginIcon.png">
+      <img class="linkText" src="../../img/LoginText.png">
+    </li>
+    <li ng-show="currentUser"><a href="/profile">
+      <img class="linkIcon" src="../../img/ProfileIcon.png">
+      <img class="linkText" src="../../img/ProfileText.png">
+    </a></li>
+  </ul>
+</nav>
+</header>

@@ -5,6 +5,6 @@ app.directive('gameCanvasDir', function(){
     template: '<div id="game-canvas"></div>',
     controller: function($scope) {
 
-    },
+    }
   }
 });

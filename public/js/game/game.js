@@ -8,7 +8,7 @@ var mainState = {
 
   create: function() { //Sets up game and displays assets
     this.logo = game.add.sprite(
-      this.startingPos.x, this.startingPos.y - 40 * globalScale, 'logo');
+      this.startingPos.x, this.startingPos.y - 60 * globalScale, 'logo');
     this.logo.scale.x = globalScale;
     this.logo.scale.y = globalScale;
     this.logo.anchor.setTo(0.5, 0.5);
