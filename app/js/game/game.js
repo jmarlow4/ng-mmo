@@ -1,5 +1,6 @@
 angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
+  //set up socket
   var socket = socketFactory();
   socket.forward('broadcast');
 
@@ -69,7 +70,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
   var loadState = {
     preload: function() {
-      game.progBar = game.add.sprite(game.progFrame.x, game.progFrame.y, 'progBar');
+      game.progBar = game.add.sprite(game.progFrame.x, game.progFrame.y, 'progBar', 1);
       game.progBar.scale.x = gs;
       game.progBar.scale.y = gs;
       game.progBar.anchor.setTo(0,  0.5);
@@ -82,7 +83,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.state.start('title', false);
     }
   };
-
+git
   var titleState = {
     create: function () {
       game.progFrame.kill();
