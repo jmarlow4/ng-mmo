@@ -83,7 +83,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.state.start('title', false);
     }
   };
-git
+
   var titleState = {
     create: function () {
       game.progFrame.kill();
