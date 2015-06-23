@@ -75,6 +75,11 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.progBar.anchor.setTo(0.5, 0.5);
       game.load.setPreloadSprite(game.progBar);
 
+      game.progText = game.add.bitmapText(
+        game.progFrame.x, game.progFrame.y - 30 * gs, 'fontW',
+        game.load.progress + "%", 16 * gs);
+      game.progText.anchor.setTo(0.5, 0.5);
+
       game.load.image('createNew', 'js/game/assets/createNew.png');
       game.load.bitmapFont('fontOL', 'js/game/assets/fonts/nt_ol.png', 'js/game/assets/fonts/nt_ol.fnt');
       game.load.image('table', 'js/game/assets/periodicTable.png');
@@ -86,6 +91,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
   var titleState = {
     create: function () {
+      game.progText.kill();
       game.progFrame.kill();
       game.progBar.kill();
 
