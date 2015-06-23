@@ -35,7 +35,6 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.stage.backgroundColor = '#0b0b0b';
       game.load.image('logo', 'js/game/assets/rl-logo-small.png');
       game.load.spritesheet('progBar', 'js/game/assets/progressBar.png',202,12,2);
-      game.load.bitmapFont('fontOL', 'js/game/assets/fonts/nt_ol.png', 'js/game/assets/fonts/nt_ol.fnt');
       game.load.bitmapFont('fontW', 'js/game/assets/fonts/nt_white.png', 'js/game/assets/fonts/nt_white.fnt');
 
       //Set default point
@@ -73,10 +72,11 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.progBar = game.add.sprite(game.progFrame.x, game.progFrame.y, 'progBar', 1);
       game.progBar.scale.x = gs;
       game.progBar.scale.y = gs;
-      game.progBar.anchor.setTo(0,  0.5);
+      game.progBar.anchor.setTo(0.5, 0.5);
       game.load.setPreloadSprite(game.progBar);
 
       game.load.image('createNew', 'js/game/assets/createNew.png');
+      game.load.bitmapFont('fontOL', 'js/game/assets/fonts/nt_ol.png', 'js/game/assets/fonts/nt_ol.fnt');
       game.load.image('table', 'js/game/assets/periodicTable.png');
     },
     create: function() {
@@ -88,9 +88,13 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     create: function () {
       game.progFrame.kill();
       game.progBar.kill();
-      //game.table = game.add.sprite(0, 200, 'table');
-      //game.table.scale.x = 0.25;
-      //game.table.scale.y = 0.25;
+
+      //testing load bar
+      game.table = game.add.sprite(0, 200, 'table');
+      game.table.scale.x = 0.25;
+      game.table.scale.y = 0.25;
+      game.table.kill();
+
     },
     update: function () {
       if (!$rootScope.currentUser) {
