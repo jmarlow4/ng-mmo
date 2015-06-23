@@ -55,20 +55,18 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.text = game.add.bitmapText(
         game.defPos.x, game.defPos.y - 30 * gs, 'fontW', 'Loading...', 16 * gs);
       game.text.anchor.setTo(0.5, 0.5);
-      game.state.start('load', false);
-
-      // Progress Bar
-      game.progFrame = game.add.sprite(game.defPos.x, game.defPos.y + 60 * gs, 'progBar', 0);
-      game.progFrame.scale.x = gs;
-      game.progFrame.scale.y = gs;
-      game.progFrame.anchor.setTo(0.5, 0.5);
-      game.state.start('load', false);
       sendMessage();
+      game.state.start('load', false);
     },
   };
 
   var loadState = {
     preload: function() {
+      // Progress Bar
+      game.progFrame = game.add.sprite(game.defPos.x, game.defPos.y + 60 * gs, 'progBar', 0);
+      game.progFrame.scale.x = gs;
+      game.progFrame.scale.y = gs;
+      game.progFrame.anchor.setTo(0.5, 0.5);
       game.progBar = game.add.sprite(game.progFrame.x, game.progFrame.y, 'progBar', 1);
       game.progBar.scale.x = gs;
       game.progBar.scale.y = gs;
@@ -76,9 +74,13 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.load.setPreloadSprite(game.progBar);
 
       game.progText = game.add.bitmapText(
-        game.progFrame.x, game.progFrame.y - 30 * gs, 'fontW',
+        game.progFrame.x, game.progFrame.y, 'fontW',
         game.load.progress + "%", 16 * gs);
       game.progText.anchor.setTo(0.5, 0.5);
+
+      game.load.onFileComplete.add(function(progress, cacheKey, success, totalLoaded, totalFiles) {
+        game.progText.setText = progress+"%";
+      }, game);
 
       game.load.image('createNew', 'js/game/assets/createNew.png');
       game.load.bitmapFont('fontOL', 'js/game/assets/fonts/nt_ol.png', 'js/game/assets/fonts/nt_ol.fnt');
