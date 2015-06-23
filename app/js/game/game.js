@@ -60,6 +60,7 @@ angular.module('rl-app').service('game', function($rootScope, SocketIO) {
       game.progFrame.scale.y = gs;
       game.progFrame.anchor.setTo(0.5, 0.5);
       game.state.start('load', false);
+      sendMessage();
     },
   };
 

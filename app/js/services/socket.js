@@ -4,3 +4,6 @@ angular.module('rl-app')
     socket.forward('broadcast');
     return socket;
   });
+
+
+
