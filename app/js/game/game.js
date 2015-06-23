@@ -33,8 +33,6 @@ angular.module('rl-app').service('game', function($rootScope, SocketIO) {
       game.load.spritesheet('progBar', 'js/game/assets/progressBar.png',202,12,2);
       game.load.bitmapFont('fontOL', 'js/game/assets/fonts/nt_ol.png', 'js/game/assets/fonts/nt_ol.fnt');
       game.load.bitmapFont('fontW', 'js/game/assets/fonts/nt_white.png', 'js/game/assets/fonts/nt_white.fnt');
-      game.load.image('createNew', 'js/game/assets/createNew.png');
-      game.load.image('createNew', 'js/game/assets/periodicTable.png');
 
       //Set default point
       game.defPos = new Phaser.Point(
@@ -72,6 +70,9 @@ angular.module('rl-app').service('game', function($rootScope, SocketIO) {
       game.progBar.scale.y = gs;
       game.progBar.anchor.setTo(0,  0.5);
       game.load.setPreloadSprite(game.progBar);
+
+      game.load.image('createNew', 'js/game/assets/createNew.png');
+      game.load.image('table', 'js/game/assets/periodicTable.png');
     },
     create: function() {
       game.state.start('title', false);
@@ -82,6 +83,9 @@ angular.module('rl-app').service('game', function($rootScope, SocketIO) {
     create: function () {
       game.progFrame.kill();
       game.progBar.kill();
+      game.table = game.add.sprite(0, 200, 'table');
+      game.table.scale.x = 0.25;
+      game.table.scale.y = 0.25;
     },
     update: function () {
       if (!$rootScope.currentUser) {
