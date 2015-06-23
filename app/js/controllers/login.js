@@ -1,5 +1,5 @@
 angular.module('rl-app')
-  .controller('LoginCtrl', function ($scope, Auth, $location, $rootScope) {
+  .controller('LoginCtrl', function ($scope, Auth, $location) {
     $scope.error = {};
     $scope.user = {};
 
@@ -24,7 +24,7 @@ angular.module('rl-app')
 
           if (!err) {
             $location.path('/');
-            console.log($rootScope.currentUser)
+            //console.log($rootScope.currentUser)
           } else {
             angular.forEach(err.errors, function(error, field) {
               form[field].$setValidity('mongoose', false);
@@ -40,7 +40,7 @@ angular.module('rl-app')
       Auth.createUser({
           email: $scope.user.email,
           username: $scope.user.username,
-          password: $scope.user.password
+          password: $scope.user.password,
         },
         function(err) {
           $scope.errors = {};

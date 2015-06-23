@@ -1,67 +1,135 @@
 angular.module('rl-app').service('game', function($rootScope, SocketIO) {
 
-  //game code
   var canvWidth = 1280;
   var canvHeight = 800;
-  //set global scale
-  var gs = 4;
-  var text = '!';
+  var gs = 4;                 // Set global scale
+
+  var game = new Phaser.Game( // Initialize game
+    canvWidth, canvHeight,    // Set canvas bounds
+    Phaser.AUTO,              // Select rendering engine
+    'game',                   // Div ID to target for canvas insertion
+    null,                     // Default state object. States are managed below.
+    false,                    // Transparent canvas
+    false);                   // Antialias
 
   var sendMessage = function () {
     SocketIO.emit('message', 'derp', 'hit that purp skurp');
-  }
+  };
 
-  var menuState = {
-    preload: function() { //Executed first and loads game assets
-      this.stage.backgroundColor = '#0b0b0b';
-      this.load.image('logo', 'js/game/assets/rl-logo-small.png');
-      this.load.bitmapFont('fontOL', 'js/game/assets/fonts/nt_ol.png', 'js/game/assets/fonts/nt_ol.fnt');
-      this.load.bitmapFont('fontW', 'js/game/assets/fonts/nt_white.png', 'js/game/assets/fonts/nt_white.fnt');
-      this.startingPos = new Phaser.Point(
+
+  Phaser.Loader.prototype.originalNextFile = Phaser.Loader.prototype.nextFile;
+
+  Phaser.Loader.prototype.nextFile = function(previousIndex, success) {
+    var self = this;
+    window.setTimeout(function() {
+      Phaser.Loader.prototype.originalNextFile.call(self, previousIndex, success);
+    }, 1000 /* milliseconds */);
+  };
+
+  var bootState = {
+    preload: function () {
+      game.stage.backgroundColor = '#0b0b0b';
+      game.load.image('logo', 'js/game/assets/rl-logo-small.png');
+      game.load.spritesheet('progBar', 'js/game/assets/progressBar.png',202,12,2);
+      game.load.bitmapFont('fontOL', 'js/game/assets/fonts/nt_ol.png', 'js/game/assets/fonts/nt_ol.fnt');
+      game.load.bitmapFont('fontW', 'js/game/assets/fonts/nt_white.png', 'js/game/assets/fonts/nt_white.fnt');
+      game.load.image('createNew', 'js/game/assets/createNew.png');
+      game.load.image('createNew', 'js/game/assets/periodicTable.png');
+
+      //Set default point
+      game.defPos = new Phaser.Point(
         Math.floor(canvWidth / 2), Math.floor(canvHeight / 2));
     },
-    create: function() { //Sets up game and displays assets
+    create: function () {
+      //set physics
+      game.physics.startSystem(Phaser.Physics.ARCADE);
 
       //logo
-      this.logo = game.add.sprite(
-        this.startingPos.x, this.startingPos.y - 60 * gs, 'logo');
-      this.logo.scale.x = gs;
-      this.logo.scale.y = gs;
-      this.logo.anchor.setTo(0.5, 0.5);
+      game.logo = game.add.sprite(game.defPos.x, game.defPos.y - 60 * gs, 'logo');
+      game.logo.scale.x = gs;
+      game.logo.scale.y = gs;
+      game.logo.anchor.setTo(0.5, 0.5);
 
       //text
-      this.text = game.add.bitmapText(
-        this.startingPos.x, this.startingPos.y - 30 * gs, 'fontW', text, 16 * gs);
-      this.text.anchor.setTo(0.5, 0.5);
-      sendMessage();
-    },
-    update: function() { //Called 60 fps and contains game logic
+      game.text = game.add.bitmapText(
+        game.defPos.x, game.defPos.y - 30 * gs, 'fontW', 'Loading...', 16 * gs);
+      game.text.anchor.setTo(0.5, 0.5);
+      game.state.start('load', false);
 
-      if ($rootScope.currentUser) {
-        this.text.setText('Welcome, ' + $rootScope.currentUser.username + '!');
+      // Progress Bar
+      game.progFrame = game.add.sprite(game.defPos.x, game.defPos.y + 60 * gs, 'progBar', 0);
+      game.progFrame.scale.x = gs;
+      game.progFrame.scale.y = gs;
+      game.progFrame.anchor.setTo(0.5, 0.5);
+      game.state.start('load', false);
+    },
+  };
+
+  var loadState = {
+    preload: function() {
+      game.progBar = game.add.sprite(game.progFrame.x, game.progFrame.y, 'progBar');
+      game.progBar.scale.x = gs;
+      game.progBar.scale.y = gs;
+      game.progBar.anchor.setTo(0,  0.5);
+      game.load.setPreloadSprite(game.progBar);
+    },
+    create: function() {
+      game.state.start('title', false);
+    }
+  };
+
+  var titleState = {
+    create: function () {
+      game.progFrame.kill();
+      game.progBar.kill();
+    },
+    update: function () {
+      if (!$rootScope.currentUser) {
+        game.text.setText('Please log in...');
+
       } else {
-        this.text.setText('Please log in...');
+        game.state.start('menu', false);
+      }
+    }
+  };
+
+  var menuState = {
+    create: function () {
+      game.text.setText('Welcome, ' + $rootScope.currentUser.username + '!');
+
+      var card;
+      this.charCards = game.add.group();
+      for (var i = 0; i < $rootScope.currentUser.characters.length; i++) {
+        card = game.add.sprite(
+          (30 + (i * 90)) * gs,
+          85 * gs,
+          'createNew', 0, this.charCards);
+        card.scale.x = gs;
+        card.scale.y = gs;
       }
     }
   };
 
   var playState = {
-    preload: function () {},
     create: function () {},
     update: function () {}
   };
 
-  var game = new Phaser.Game(
-    canvWidth, canvHeight, Phaser.AUTO, 'game', null, false, false);
 
+  game.state.add('boot', bootState);
+  game.state.add('load', loadState);
+  game.state.add('title', titleState);
   game.state.add('menu', menuState);
   game.state.add('play', playState);
 
   this.start = function() {
-    game.state.start('menu');
+    game.state.start('boot');
   };
 
-
+  this.reset = function() {
+    game.state.clearCurrentState();
+    game.state.start('boot');
+  };
 });
 
 
