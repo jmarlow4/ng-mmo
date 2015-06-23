@@ -7,6 +7,8 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
   var canvWidth = 1280;
   var canvHeight = 800;
   var gs = 4;                 // Set global scale
+  var underText;              // Text below logo
+  var progText;               // Load indicator text
 
   var game = new Phaser.Game( // Initialize game
     canvWidth, canvHeight,    // Set canvas bounds
@@ -17,7 +19,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     false);                   // Antialias
 
   var sendMessage = function () {
-    socket.emit('message', 'derp', 'hit that purp skurp');
+    socket.emit('message', 'herp', 'derp');
   };
 
 
@@ -52,9 +54,9 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.logo.anchor.setTo(0.5, 0.5);
 
       //text
-      game.text = game.add.bitmapText(
+      underText = game.add.bitmapText(
         game.defPos.x, game.defPos.y - 30 * gs, 'fontW', 'Loading...', 16 * gs);
-      game.text.anchor.setTo(0.5, 0.5);
+      underText.anchor.setTo(0.5, 0.5);
       sendMessage();
       game.state.start('load', false);
     },
@@ -73,14 +75,14 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.progBar.anchor.setTo(0.5, 0.5);
       game.load.setPreloadSprite(game.progBar);
 
-      game.progText = game.add.bitmapText(
+      progText = game.add.bitmapText(
         game.progFrame.x, game.progFrame.y, 'fontW',
-        game.load.progress + "%", 16 * gs);
-      game.progText.anchor.setTo(0.5, 0.5);
+        '100%', 16 * gs);
+      progText.anchor.setTo(0.5, 0.5);
 
-      game.load.onFileComplete.add(function(progress, cacheKey, success, totalLoaded, totalFiles) {
-        game.progText.setText = progress+"%";
-      }, game);
+      game.load.onFileComplete.add(function(progress) {
+        progText.setText = progress+"%";
+      }, this);
 
       game.load.image('createNew', 'js/game/assets/createNew.png');
       game.load.bitmapFont('fontOL', 'js/game/assets/fonts/nt_ol.png', 'js/game/assets/fonts/nt_ol.fnt');
@@ -93,7 +95,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
   var titleState = {
     create: function () {
-      game.progText.kill();
+      progText.kill();
       game.progFrame.kill();
       game.progBar.kill();
 
@@ -106,7 +108,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     },
     update: function () {
       if (!$rootScope.currentUser) {
-        game.text.setText('Please log in...');
+        underText.setText('Please log in...');
 
       } else {
         game.state.start('menu', false);
@@ -116,7 +118,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
   var menuState = {
     create: function () {
-      game.text.setText('Welcome, ' + $rootScope.currentUser.username + '!');
+      underText.setText('Welcome, ' + $rootScope.currentUser.username + '!');
 
       var card;
       this.charCards = game.add.group();
