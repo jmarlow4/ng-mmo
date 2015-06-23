@@ -1,4 +1,7 @@
-angular.module('rl-app').service('game', function($rootScope, SocketIO) {
+angular.module('rl-app').service('game', function($rootScope, socketFactory) {
+
+  var socket = socketFactory();
+  socket.forward('broadcast');
 
   var canvWidth = 1280;
   var canvHeight = 800;
@@ -13,7 +16,7 @@ angular.module('rl-app').service('game', function($rootScope, SocketIO) {
     false);                   // Antialias
 
   var sendMessage = function () {
-    SocketIO.emit('message', 'derp', 'hit that purp skurp');
+    socket.emit('message', 'derp', 'hit that purp skurp');
   };
 
 
