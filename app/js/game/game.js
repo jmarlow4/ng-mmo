@@ -83,9 +83,9 @@ angular.module('rl-app').service('game', function($rootScope, SocketIO) {
     create: function () {
       game.progFrame.kill();
       game.progBar.kill();
-      game.table = game.add.sprite(0, 200, 'table');
-      game.table.scale.x = 0.25;
-      game.table.scale.y = 0.25;
+      //game.table = game.add.sprite(0, 200, 'table');
+      //game.table.scale.x = 0.25;
+      //game.table.scale.y = 0.25;
     },
     update: function () {
       if (!$rootScope.currentUser) {

@@ -38,7 +38,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }) );
 app.use(cookieParser());
 //app.use(methodOverride());
-app.use(express.static(path.join(__dirname + '/app'), {redirect: false}));
+app.use(express.static(path.join(__dirname + '/app')));
 app.set('views', (path.join(__dirname + '/app/views')));
 //app.use(express.static(path.join(__dirname, '/app')));
 
