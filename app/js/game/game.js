@@ -1,4 +1,4 @@
-angular.module('rl-app').service('game', ['$rootScope','SocketIO', function($rootScope, SocketIO) {
+angular.module('rl-app').service('game', function($rootScope, SocketIO) {
 
   var canvWidth = 1280;
   var canvHeight = 800;
@@ -135,7 +135,7 @@ angular.module('rl-app').service('game', ['$rootScope','SocketIO', function($roo
     game.state.clearCurrentState();
     game.state.start('boot');
   };
-}]);
+});
 
 
 
