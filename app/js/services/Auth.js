@@ -1,5 +1,7 @@
 angular.module('rl-app')
-  .factory('Auth', function Auth($location, $rootScope, Session, User, $cookieStore) {
+  .factory('Auth', function Auth(
+    $location, $rootScope, $routeParams, Session, User, $cookieStore) {
+
     $rootScope.currentUser = $cookieStore.get('user') || null;
     //$cookieStore.remove('user');
 
@@ -47,6 +49,18 @@ angular.module('rl-app')
       currentUser: function() {
         Session.get(function(user) {
           $rootScope.currentUser = user;
+        });
+      },
+
+      saveCharacters: function(charArray, callback) {
+        var cb = callback || angular.noop;
+        User.update({
+          characters: charArray
+        }, function(user) {
+          console.log('characters saved');
+          return cb();
+        }, function(err) {
+          return cb(err.data);
         });
       },
 
