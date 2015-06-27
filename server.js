@@ -17,9 +17,6 @@ var express = require('express'),
 // Connect to database
 var db = require('./lib/db/mongo').db;
 
-//Set up sockets
-
-
 // Bootstrap models
 var modelsPath = path.join(__dirname, 'lib/models');
 fs.readdirSync(modelsPath).forEach(function (file) {

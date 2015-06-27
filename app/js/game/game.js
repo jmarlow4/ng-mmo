@@ -1,14 +1,14 @@
-angular.module('rl-app').service('game', function($rootScope, Auth, socketFactory) {
+angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
   //set up socket
-  var socket = socketFactory();
-  socket.forward('broadcast');
+  var socket;
 
   var canvWidth = 1280;
   var canvHeight = 800;
   var gs = 4;                 // Set global scale
   var underText;              // Text below logo
   var progText;               // Load indicator text
+  var char = {};
 
   var game = new Phaser.Game( // Initialize game
     canvWidth, canvHeight,    // Set canvas bounds
@@ -47,7 +47,6 @@ angular.module('rl-app').service('game', function($rootScope, Auth, socketFactor
       underText = game.add.bitmapText(
         game.defPos.x, game.defPos.y - 30 * gs, 'fontW', 'Loading...', 16 * gs);
       underText.anchor.setTo(0.5, 0.5);
-      sendMessage();
       game.state.start('load', false);
     },
   };
@@ -106,55 +105,179 @@ angular.module('rl-app').service('game', function($rootScope, Auth, socketFactor
     create: function () {
       underText.destroy();
 
-      game.player = game.add.sprite(game.defPos.x, game.defPos.y, 'guy', 0);
-      setUpPlayer(game.player);
+      game.charCreator = game.add.sprite(game.defPos.x, game.defPos.y, 'guy', 0);
+      game.charCreator.nameText = game.add.bitmapText(
+        0, -14, 'fontOL', $rootScope.currentUser.username, 16);
+      game.charCreator.nameText.anchor.setTo(0.5, 1);
+      game.charCreator.addChild(game.charCreator.nameText);
+      game.charCreator.anchor.setTo(0.5, 0.5);
+      game.charCreator.scale.x = gs;
+      game.charCreator.scale.y = gs;
       setUpButtons();
-
     }
   };
 
   var playState = {
     create: function () {
-      game.cursor = game.input.keyboard.createCursorKeys();
+
       game.logo.destroy();
       game.colorBtn.destroy();
       game.enterBtn.destroy();
+      game.charCreator.destroy();
+
+      // Set up players movement
+      game.cursor = game.input.keyboard.createCursorKeys();
+      //getOthers(game);
+      //transferPlayer(game);
+      //console.log(game[$rootScope.currentUser.username]);
+      //game.physics.arcade.enable(game[$rootScope.currentUser.username]);
+
+      // Create user's character
+      game[char.name] = new Player(game, char);
+      // Send character to server
+      var character = {
+        name: char.name,
+        color: char.color,
+        nameCol: char.nameCol,
+        x: game[char.name].x,
+        y: game[char.name].y
+      };
+      socket.emit('join', character);
+
+      console.log(game[char.name].body);
     },
     update: function () {
-      movePlayer();
+      //console.log(game[$rootScope.currentUser.username].body);
+      game[char.name].movePlayer();
     }
   };
 
-  this.start = function() {
-    game.state.start('boot');
-  };
+  //var setUpPlayer = function(player) {
+    //player.anchor.setTo(0.5, 0.5);
+    //player.scale.x = gs;
+    //player.scale.y = gs;
+    //game.physics.arcade.enable(player);
+    //
+    ////name above player
+    //player.nameText = game.add.bitmapText(
+    //  0, -14, 'fontOL', $rootScope.currentUser.username, 16);
+    //player.nameText.anchor.setTo(0.5, 1);
+    //player.addChild(player.nameText);
+    //
+    ////animations
+    //player.animations.add('down', [0,1,0,2], 10,  true);
+    //player.animations.add('left', [5,3,5,4], 10, true);
+    //player.animations.add('right', [6,7,6,8], 10, true);
+    //player.animations.add('up', [9,10,9,11], 10, true);
+    //player.character = {
+    //  name: $rootScope.currentUser.username,
+    //  color: player.tint,
+    //  nameCol: player.nameText.tint,
+    //  x: player.x,
+    //  y: player.y
+    //};
+  //};
 
-  this.reset = function() {
-    game.state.clearCurrentState();
-    game.state.start('boot');
-  };
+  var Player = function(game, charObj) {
 
-  var setUpPlayer = function(player) {
+    // Break down character object
+    this.name = charObj.name;
+    this.color = charObj.color;
+    this.nameCol = charObj.nameCol;
+    this.x = Math.floor((Math.random() * (296 - 24 + 1)) + 24) * gs;
+    this.y = Math.floor((Math.random() * (184 - 16 + 1)) + 16) * gs;
+
+    var player = game.add.sprite(0, 0, 'guy', 0);
+    game.physics.arcade.enable(player);
+
+    // Build Player
+    console.log(player.body);
     player.anchor.setTo(0.5, 0.5);
     player.scale.x = gs;
     player.scale.y = gs;
-    game.physics.arcade.enable(player);
+    player.nameText = game.add.bitmapText(
+      0, -14, 'fontOL', this.name, 16);
+    player.nameText.anchor.setTo(0.5, 1);
+    player.tint = this.color;
+    player.nameText.tint = this.nameCol;
+    player.addChild(player.nameText);
+    player.x = this.x;
+    player.y = this.y;
 
-    //name above player
-    var nameText = game.add.bitmapText(
-      0, -14, 'fontOL',
-      $rootScope.currentUser.username, 8);
-    nameText.anchor.setTo(0.5, 1);
-    player.addChild(nameText);
-
-    //animations
+    // Set up animations
     player.animations.add('down', [0,1,0,2], 10,  true);
     player.animations.add('left', [5,3,5,4], 10, true);
     player.animations.add('right', [6,7,6,8], 10, true);
     player.animations.add('up', [9,10,9,11], 10, true);
+    game[this.name] = player;
+    this.player = player;
+    this.game = game;
+  };
+  Player.prototype.movePlayer = function() {
+
+    var speed = 200;
+    this.player.body.velocity.x = 0;
+    this.player.body.velocity.y = 0;
+
+
+    if (this.game.cursor.up.isDown) {
+      this.player.body.velocity.y = -speed;
+      this.player.facingDir = 1;
+    } else if (this.game.cursor.down.isDown) {
+      this.player.body.velocity.y = speed;
+      this.player.facingDir = 3;
+    }
+    if (this.game.cursor.left.isDown) {
+      this.player.body.velocity.x = -speed;
+      this.player.facingDir = 4;
+    } else if (this.game.cursor.right.isDown) {
+      this.player.body.velocity.x = speed;
+      this.player.facingDir = 2;
+    }
+    switch (this.player.facingDir) {
+      case 1: this.player.animations.play('up'); break;
+      case 2: this.player.animations.play('right'); break;
+      case 3: this.player.animations.play('down'); break;
+      case 4: this.player.animations.play('left'); break;
+      default: this.player.animations.play('down');
+    }
+    if (!this.player.body.velocity.x && !this.player.body.velocity.y) {
+      this.player.animations.stop(); // Stop the animation
+      // Set the player frame to stand still
+      switch (this.player.facingDir) {
+        case 1: this.player.frame = 9; break;
+        case 2: this.player.frame = 6; break;
+        case 3: this.player.frame = 0; break;
+        case 4: this.player.frame = 5; break;
+        default: this.player.frame = 0;
+      }
+    }
+  };
+
+  var transferPlayer = function(game) {
+    socket.on('transferPlayer', function(otherPlayer){
+      game[otherPlayer.name] = new Player(game, otherPlayer);
+      game[otherPlayer.name].movePlayer = null;
+    })
+  };
+
+  var getOthers = function(game) {
+    socket.emit('getOthers');
+    socket.on('giveOthers', function(charArray) {
+      console.log(charArray);
+      for (var i = 0; i < charArray.length; i++) {
+        game[charArray[i].name] = new Player(game, charArray[i]);
+        game[charArray[i].name].movePlayer = null;
+      }
+    });
   };
 
   var setUpButtons = function() {
+
+    char.name = $rootScope.currentUser.username;
+    char.color = 0xffffff;
+    char.nameCol = 0xffffff;
+
     game.colorBtn = game.add.sprite(game.defPos.x, game.defPos.y + 40 * gs, 'colorBtn');
     game.colorBtn.anchor.setTo(0.5, 0.5);
     game.colorBtn.scale.x = gs;
@@ -162,9 +285,13 @@ angular.module('rl-app').service('game', function($rootScope, Auth, socketFactor
     game.colorBtn.inputEnabled = true;
     game.colorBtn.buttonMode = true;
     game.colorBtn.events.onInputDown.add(function(){
-      var tint = Math.random() * 0xffffff;
-      game.player.tint = tint;
-      game.colorBtn.tint = tint;
+      var color = Math.floor(Math.random() * 0xffffff);
+      var nameCol = Math.floor(Math.random() * 0xffffff);
+      game.charCreator.tint = color;
+      game.charCreator.nameText.tint = nameCol;
+      game.colorBtn.tint = color;
+      char.color = color;
+      char.nameCol = nameCol;
     });
 
     game.enterBtn = game.add.sprite(game.defPos.x, game.defPos.y + 68 * gs, 'enterBtn');
@@ -174,49 +301,37 @@ angular.module('rl-app').service('game', function($rootScope, Auth, socketFactor
     game.enterBtn.inputEnabled = true;
     game.enterBtn.buttonMode = true;
     game.enterBtn.events.onInputDown.add(function(){
+
+      // connect socket
+      socket = socketFactory();
+      socket.forward('broadcast');
+      socket.on('broadcast', function(str){
+        console.log(str);
+      });
+
       game.state.start('play', false);
     });
-
   };
 
-  var movePlayer = function() {
-
-    var speed = 200;
-    game.player.facingDir = 3;
-    game.player.body.velocity.x = 0;
-    game.player.body.velocity.y = 0;
-
-    if (game.cursor.up.isDown) {
-      game.player.body.velocity.y = -speed;
-      game.player.facingDir = 1;
-    } else if (game.cursor.down.isDown) {
-      game.player.body.velocity.y = speed;
-      game.player.facingDir = 3;
-    }
-    if (game.cursor.left.isDown) {
-      game.player.body.velocity.x = -speed;
-      game.player.facingDir = 4;
-    } else if (game.cursor.right.isDown) {
-      game.player.body.velocity.x = speed;
-      game.player.facingDir = 2;
-    }
-    switch (game.player.facingDir) {
-      case 1: game.player.animations.play('up'); break;
-      case 2: game.player.animations.play('right'); break;
-      case 3: game.player.animations.play('down'); break;
-      case 4: game.player.animations.play('left'); break;
-    }
-    if (!game.player.body.velocity.x && !game.player.body.velocity.y) {
-      game.player.animations.stop(); // Stop the animation
-      game.player.frame = 0; // Set the player frame to 0 (stand still)
-    }
-  }
-
+  //Add game states
   game.state.add('boot', bootState);
   game.state.add('load', loadState);
   game.state.add('title', titleState);
   game.state.add('menu', menuState);
   game.state.add('play', playState);
+
+  // Angular-accessible methods
+
+  this.start = function() {
+    game.state.start('boot');
+  };
+
+  this.reset = function() {
+    if (socket) socket.disconnect();
+    game.state.clearCurrentState();
+    game.state.start('boot');
+  };
+
 });
 
 
