@@ -212,7 +212,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
   var transferPlayer = function(game) {
     socket.on('transferPlayer', function(otherPlayer){
       game[otherPlayer.name] = new Player(game, otherPlayer);
-      game[otherPlayer.name].movePlayer = null;
+      //game[otherPlayer.name].movePlayer = null;
       game.add.existing(game[otherPlayer.name]);
     })
   };
@@ -223,7 +223,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       console.log(charArray);
       for (var i = 0; i < charArray.length; i++) {
         game[charArray[i].name] = new Player(game, charArray[i]);
-        game[charArray[i].name].movePlayer = null;
+        //game[charArray[i].name].movePlayer = null;
         game.add.existing(game[charArray[i].name]);
       }
     });
