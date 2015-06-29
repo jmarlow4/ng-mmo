@@ -169,7 +169,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     this.animations.add('up', [9,10,9,11], 10, true);
   };
   Player.prototype = Object(Phaser.Sprite.prototype);
-  Player.prototype.constructor = ExtPlayer;
+  Player.prototype.constructor = Player;
   Player.prototype.movePlayer = function() {
     var speed = 200;
     this.body.velocity.x = 0;
