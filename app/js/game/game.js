@@ -131,7 +131,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
       // Set up players movement
       game.cursor = game.input.keyboard.createCursorKeys();
-      game[char.name] = new ExtPlayer(game, char);
+      game[char.name] = new Player(game, char);
       game.add.existing(game[char.name]);
       getOthers(game);
       transferPlayer(game);
@@ -150,8 +150,8 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     }
   };
 
-  //  Here is a custom game object
-  var ExtPlayer = function (game, charObj) {
+  // Set up player class
+  var Player = function (game, charObj) {
     Phaser.Sprite.call(this, game, charObj.x, charObj.y, 'guy', 0);
     game.physics.arcade.enable(this);
     this.name = charObj.name;
@@ -168,9 +168,9 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     this.animations.add('right', [6,7,6,8], 10, true);
     this.animations.add('up', [9,10,9,11], 10, true);
   };
-  ExtPlayer.prototype = Object(Phaser.Sprite.prototype);
-  ExtPlayer.prototype.constructor = ExtPlayer;
-  ExtPlayer.prototype.movePlayer = function() {
+  Player.prototype = Object(Phaser.Sprite.prototype);
+  Player.prototype.constructor = ExtPlayer;
+  Player.prototype.movePlayer = function() {
     var speed = 200;
     this.body.velocity.x = 0;
     this.body.velocity.y = 0;
@@ -211,7 +211,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
   var transferPlayer = function(game) {
     socket.on('transferPlayer', function(otherPlayer){
-      game[otherPlayer.name] = new ExtPlayer(game, otherPlayer);
+      game[otherPlayer.name] = new Player(game, otherPlayer);
       game[otherPlayer.name].movePlayer = null;
       game.add.existing(game[otherPlayer.name]);
     })
@@ -222,7 +222,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     socket.on('giveOthers', function(charArray) {
       console.log(charArray);
       for (var i = 0; i < charArray.length; i++) {
-        game[charArray[i].name] = new ExtPlayer(game, charArray[i]);
+        game[charArray[i].name] = new Player(game, charArray[i]);
         game[charArray[i].name].movePlayer = null;
         game.add.existing(game[charArray[i].name]);
       }
@@ -295,84 +295,84 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
   };
 
 
-  //Don't need this but I'm keeping it anyway just in case
-  var Player = function(game, charObj) {
-
-    // Break down character object
-    this.name = charObj.name;
-    this.color = charObj.color;
-    this.nameCol = charObj.nameCol;
-    this.x = charObj.x;
-    this.y = charObj.y;
-    //this.x = Math.floor((Math.random() * (296 - 24 + 1)) + 24) * gs;
-    //this.y = Math.floor((Math.random() * (184 - 16 + 1)) + 16) * gs;
-
-    var player = game.add.sprite(0, 0, 'guy', 0);
-    game.physics.arcade.enable(player);
-    this.player = player;
-
-    // Build Player
-    //console.log(player.body);
-    player.anchor.setTo(0.5, 0.5);
-    player.scale.x = gs;
-    player.scale.y = gs;
-    player.nameText = game.add.bitmapText(
-      0, -14, 'fontOL', this.name, 16);
-    player.nameText.anchor.setTo(0.5, 1);
-    player.tint = this.color;
-    player.nameText.tint = this.nameCol;
-    player.addChild(player.nameText);
-    player.x = this.x;
-    player.y = this.y;
-
-    // Set up animations
-    player.animations.add('down', [0,1,0,2], 10,  true);
-    player.animations.add('left', [5,3,5,4], 10, true);
-    player.animations.add('right', [6,7,6,8], 10, true);
-    player.animations.add('up', [9,10,9,11], 10, true);
-    game[this.name] = player;
-    this.game = game;
-  };
-  Player.prototype.movePlayer = function() {
-
-    var speed = 200;
-    this.player.body.velocity.x = 0;
-    this.player.body.velocity.y = 0;
-
-
-    if (this.game.cursor.up.isDown) {
-      this.player.body.velocity.y = -speed;
-      this.player.facingDir = 1;
-    } else if (this.game.cursor.down.isDown) {
-      this.player.body.velocity.y = speed;
-      this.player.facingDir = 3;
-    }
-    if (this.game.cursor.left.isDown) {
-      this.player.body.velocity.x = -speed;
-      this.player.facingDir = 4;
-    } else if (this.game.cursor.right.isDown) {
-      this.player.body.velocity.x = speed;
-      this.player.facingDir = 2;
-    }
-    switch (this.player.facingDir) {
-      case 1: this.player.animations.play('up'); break;
-      case 2: this.player.animations.play('right'); break;
-      case 3: this.player.animations.play('down'); break;
-      case 4: this.player.animations.play('left'); break;
-      default: this.player.animations.play('down');
-    }
-    if (!this.player.body.velocity.x && !this.player.body.velocity.y) {
-      this.player.animations.stop(); // Stop the animation
-      // Set the player frame to stand still
-      switch (this.player.facingDir) {
-        case 1: this.player.frame = 9; break;
-        case 2: this.player.frame = 6; break;
-        case 3: this.player.frame = 0; break;
-        case 4: this.player.frame = 5; break;
-        default: this.player.frame = 0;
-      }
-    }
-  };
+  ////Don't need this but I'm keeping it anyway just in case
+  //var Player = function(game, charObj) {
+  //
+  //  // Break down character object
+  //  this.name = charObj.name;
+  //  this.color = charObj.color;
+  //  this.nameCol = charObj.nameCol;
+  //  this.x = charObj.x;
+  //  this.y = charObj.y;
+  //  //this.x = Math.floor((Math.random() * (296 - 24 + 1)) + 24) * gs;
+  //  //this.y = Math.floor((Math.random() * (184 - 16 + 1)) + 16) * gs;
+  //
+  //  var player = game.add.sprite(0, 0, 'guy', 0);
+  //  game.physics.arcade.enable(player);
+  //  this.player = player;
+  //
+  //  // Build Player
+  //  //console.log(player.body);
+  //  player.anchor.setTo(0.5, 0.5);
+  //  player.scale.x = gs;
+  //  player.scale.y = gs;
+  //  player.nameText = game.add.bitmapText(
+  //    0, -14, 'fontOL', this.name, 16);
+  //  player.nameText.anchor.setTo(0.5, 1);
+  //  player.tint = this.color;
+  //  player.nameText.tint = this.nameCol;
+  //  player.addChild(player.nameText);
+  //  player.x = this.x;
+  //  player.y = this.y;
+  //
+  //  // Set up animations
+  //  player.animations.add('down', [0,1,0,2], 10,  true);
+  //  player.animations.add('left', [5,3,5,4], 10, true);
+  //  player.animations.add('right', [6,7,6,8], 10, true);
+  //  player.animations.add('up', [9,10,9,11], 10, true);
+  //  game[this.name] = player;
+  //  this.game = game;
+  //};
+  //Player.prototype.movePlayer = function() {
+  //
+  //  var speed = 200;
+  //  this.player.body.velocity.x = 0;
+  //  this.player.body.velocity.y = 0;
+  //
+  //
+  //  if (this.game.cursor.up.isDown) {
+  //    this.player.body.velocity.y = -speed;
+  //    this.player.facingDir = 1;
+  //  } else if (this.game.cursor.down.isDown) {
+  //    this.player.body.velocity.y = speed;
+  //    this.player.facingDir = 3;
+  //  }
+  //  if (this.game.cursor.left.isDown) {
+  //    this.player.body.velocity.x = -speed;
+  //    this.player.facingDir = 4;
+  //  } else if (this.game.cursor.right.isDown) {
+  //    this.player.body.velocity.x = speed;
+  //    this.player.facingDir = 2;
+  //  }
+  //  switch (this.player.facingDir) {
+  //    case 1: this.player.animations.play('up'); break;
+  //    case 2: this.player.animations.play('right'); break;
+  //    case 3: this.player.animations.play('down'); break;
+  //    case 4: this.player.animations.play('left'); break;
+  //    default: this.player.animations.play('down');
+  //  }
+  //  if (!this.player.body.velocity.x && !this.player.body.velocity.y) {
+  //    this.player.animations.stop(); // Stop the animation
+  //    // Set the player frame to stand still
+  //    switch (this.player.facingDir) {
+  //      case 1: this.player.frame = 9; break;
+  //      case 2: this.player.frame = 6; break;
+  //      case 3: this.player.frame = 0; break;
+  //      case 4: this.player.frame = 5; break;
+  //      default: this.player.frame = 0;
+  //    }
+  //  }
+  //};
 
 });
 
