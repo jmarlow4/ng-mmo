@@ -9,6 +9,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
   var underText;              // Text below logo
   var progText;               // Load indicator text
   var char = {};
+  var remotePlayers = {};
 
   var game = new Phaser.Game( // Initialize game
     canvWidth, canvHeight,    // Set canvas bounds
@@ -17,10 +18,6 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     null,                     // Default state object. States are managed below.
     false,                    // Transparent canvas
     false);                   // Antialias
-
-  var sendMessage = function () {
-    socket.emit('message', 'herp', 'derp');
-  };
 
   var bootState = {
     preload: function () {
@@ -124,29 +121,81 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
   var playState = {
     create: function () {
 
+      this.lastFrameTime;
       game.logo.destroy();
       game.colorBtn.destroy();
       game.enterBtn.destroy();
       game.charCreator.destroy();
 
+      // connect socket
+      socket = socketFactory();
+      socket.forward('broadcast');
+      socket.on('broadcast', function(str){
+        console.log(str);
+      });
+
       // Set up players movement
       game.cursor = game.input.keyboard.createCursorKeys();
       game[char.name] = new Player(game, char);
-      game.add.existing(game[char.name]);
+
       getOthers(game);
       transferPlayer(game);
 
-      console.log(game[char.name]);
+      //console.log(game[char.name]);
       socket.emit('join', char);
+      socket.on("playerMoved", this.onMovePlayer.bind(this));
       socket.on('userDisconnected', function(otherChar) {
         game[otherChar.name].destroy();
-        console.log(game[otherChar.name]);
+        //console.log(game[otherChar.name]);
         console.log(game[otherChar.name].name + " disconnected!");
       });
 
     },
     update: function () {
       game[char.name].movePlayer();
+
+      this.storePreviousPositions();
+
+      if (remotePlayers != {}) {
+        for (var remoteChar in remotePlayers) {
+          game[remoteChar].interpolate(this.lastFrameTime);
+        }
+      }
+
+      this.lastFrameTime = game.time.now;
+
+    },
+
+    storePreviousPositions: function() {
+      for(var id in remotePlayers) {
+        var remotePlayer = remotePlayers[id];
+        remotePlayer.previousPosition.set(remotePlayer.position.x, remotePlayer.position.y);
+      }
+    },
+
+    onMovePlayer: function(data) {
+      if(game[char.name] && data.name == game[char.name].name) {
+        return;
+      }
+
+      var movingPlayer = game[data.name];
+
+      if(movingPlayer.targetPosition) {
+        movingPlayer.facing = data.facing;
+        movingPlayer.lastMoveTime = game.time.now;
+
+        if(data.x == movingPlayer.targetPosition.x && data.y == movingPlayer.targetPosition.y) {
+          return;
+        }
+
+        movingPlayer.position.x = movingPlayer.targetPosition.x;
+        movingPlayer.position.y = movingPlayer.targetPosition.y;
+
+        movingPlayer.distanceToCover = {x: data.x - movingPlayer.targetPosition.x, y: data.y - movingPlayer.targetPosition.y};
+        movingPlayer.distanceCovered = {x: 0, y:0};
+      }
+
+      movingPlayer.targetPosition = {x: data.x, y: data.y};
     }
   };
 
@@ -167,9 +216,9 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     this.animations.add('left', [5,3,5,4], 10, true);
     this.animations.add('right', [6,7,6,8], 10, true);
     this.animations.add('up', [9,10,9,11], 10, true);
+    game.add.existing(this);
   };
   Player.prototype = Object(Phaser.Sprite.prototype);
-  Player.prototype.constructor = Player;
   Player.prototype.movePlayer = function() {
     var speed = 200;
     this.body.velocity.x = 0;
@@ -177,54 +226,130 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
     if (game.cursor.up.isDown) {
       this.body.velocity.y = -speed;
-      this.facingDir = 1;
+      this.facing = 1;
     } else if (this.game.cursor.down.isDown) {
       this.body.velocity.y = speed;
-      this.facingDir = 3;
+      this.facing = 3;
     }
     if (game.cursor.left.isDown) {
       this.body.velocity.x = -speed;
-      this.facingDir = 4;
+      this.facing = 4;
     } else if (game.cursor.right.isDown) {
       this.body.velocity.x = speed;
-      this.facingDir = 2;
+      this.facing = 2;
     }
-    switch (this.facingDir) {
+    switch (this.facing) {
       case 1: this.animations.play('up'); break;
       case 2: this.animations.play('right'); break;
       case 3: this.animations.play('down'); break;
       case 4: this.animations.play('left'); break;
       default: this.animations.play('down');
     }
+
+
     if (!this.body.velocity.x && !this.body.velocity.y) {
       this.animations.stop(); // Stop the animation
       // Set the player frame to stand still
-      switch (this.facingDir) {
+      switch (this.facing) {
         case 1: this.frame = 9; break;
         case 2: this.frame = 6; break;
         case 3: this.frame = 0; break;
         case 4: this.frame = 5; break;
         default: this.frame = 0;
       }
+    } else {
+      // if player is moving, send movement data
+      socket.emit("movePlayer", {
+        name: this.name,
+        x: this.position.x,
+        y: this.position.y,
+        facing: this.facing
+      });
+    }
+  };
+
+  var RemotePlayer = function (game, charObj) {
+    Phaser.Sprite.call(this, game, charObj.x, charObj.y, 'guy', 0);
+    game.physics.arcade.enable(this);
+    this.name = charObj.name;
+    this.anchor.setTo(0.5, 0.5);
+    this.scale.setTo(gs, gs);
+    this.nameText = game.add.bitmapText(
+      0, -14, 'fontOL', this.name, 16);
+    this.nameText.anchor.setTo(0.5, 1);
+    this.tint = charObj.color;
+    this.nameText.tint = charObj.nameCol;
+    this.addChild(this.nameText);
+    this.animations.add('down', [0,1,0,2], 10,  true);
+    this.animations.add('left', [5,3,5,4], 10, true);
+    this.animations.add('right', [6,7,6,8], 10, true);
+    this.animations.add('up', [9,10,9,11], 10, true);
+
+    // Relating to movement...
+    this.previousPosition = new Phaser.Point(this.position.x, this.position.y);
+    this.distanceToCover = null;
+    this.distanceCovered = null;
+    this.targetPosition = null;
+    this.lastMoveTime = null;
+
+    // Add to game
+    game.add.existing(this);
+  };
+  RemotePlayer.prototype = Object(Phaser.Sprite.prototype);
+  RemotePlayer.prototype.interpolate = function(lastFrameTime) {
+    var remotePlayerUpdateInterval = 100;
+    if(this.distanceToCover && lastFrameTime) {
+      if((this.distanceCovered.x < Math.abs(this.distanceToCover.x) || this.distanceCovered.y < Math.abs(this.distanceToCover.y))) {
+        var fractionOfTimeStep = (game.time.now - lastFrameTime) / remotePlayerUpdateInterval;
+        var distanceCoveredThisFrameX = fractionOfTimeStep * this.distanceToCover.x;
+        var distanceCoveredThisFrameY = fractionOfTimeStep * this.distanceToCover.y;
+
+        this.distanceCovered.x += Math.abs(distanceCoveredThisFrameX);
+        this.distanceCovered.y += Math.abs(distanceCoveredThisFrameY);
+
+        this.position.x += distanceCoveredThisFrameX;
+        this.position.y += distanceCoveredThisFrameY;
+
+        switch (this.facing) {
+          case 1: this.animations.play('up'); break;
+          case 2: this.animations.play('right'); break;
+          case 3: this.animations.play('down'); break;
+          case 4: this.animations.play('left'); break;
+          default: this.animations.play('down');
+        }
+
+      } else {
+        this.position.x = this.targetPosition.x;
+        this.position.y = this.targetPosition.y;
+
+        this.animations.stop(); // Stop the animation
+        // Set the player frame to stand still
+        switch (this.facing) {
+          case 1: this.frame = 9; break;
+          case 2: this.frame = 6; break;
+          case 3: this.frame = 0; break;
+          case 4: this.frame = 5; break;
+          default: this.frame = 0;
+        }
+      }
     }
   };
 
   var transferPlayer = function(game) {
     socket.on('transferPlayer', function(otherPlayer){
-      game[otherPlayer.name] = new Player(game, otherPlayer);
-      //game[otherPlayer.name].movePlayer = null;
-      game.add.existing(game[otherPlayer.name]);
+      game[otherPlayer.name] = new RemotePlayer(game, otherPlayer);
+      remotePlayers[otherPlayer.name] = game[otherPlayer.name];
     })
   };
 
   var getOthers = function(game) {
     socket.emit('getOthers');
-    socket.on('giveOthers', function(charArray) {
-      console.log(charArray);
-      for (var i = 0; i < charArray.length; i++) {
-        game[charArray[i].name] = new Player(game, charArray[i]);
-        //game[charArray[i].name].movePlayer = null;
-        game.add.existing(game[charArray[i].name]);
+    socket.on('giveOthers', function(charListObj) {
+
+      for (var charObj in charListObj) {
+        console.log(charListObj);
+        game[charObj] = new RemotePlayer(game, charListObj[charObj]);
+        remotePlayers[charObj] = game[charObj];
       }
     });
   };
@@ -263,14 +388,6 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     game.enterBtn.inputEnabled = true;
     game.enterBtn.buttonMode = true;
     game.enterBtn.events.onInputDown.add(function(){
-
-      // connect socket
-      socket = socketFactory();
-      socket.forward('broadcast');
-      socket.on('broadcast', function(str){
-        console.log(str);
-      });
-
         game.state.start('play', false);
     });
   };
@@ -283,7 +400,6 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
   game.state.add('play', playState);
 
   // Angular-accessible methods
-
   this.start = function() {
     game.state.start('boot');
   };
@@ -293,86 +409,6 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     game.state.clearCurrentState();
     game.state.start('boot');
   };
-
-
-  ////Don't need this but I'm keeping it anyway just in case
-  //var Player = function(game, charObj) {
-  //
-  //  // Break down character object
-  //  this.name = charObj.name;
-  //  this.color = charObj.color;
-  //  this.nameCol = charObj.nameCol;
-  //  this.x = charObj.x;
-  //  this.y = charObj.y;
-  //  //this.x = Math.floor((Math.random() * (296 - 24 + 1)) + 24) * gs;
-  //  //this.y = Math.floor((Math.random() * (184 - 16 + 1)) + 16) * gs;
-  //
-  //  var player = game.add.sprite(0, 0, 'guy', 0);
-  //  game.physics.arcade.enable(player);
-  //  this.player = player;
-  //
-  //  // Build Player
-  //  //console.log(player.body);
-  //  player.anchor.setTo(0.5, 0.5);
-  //  player.scale.x = gs;
-  //  player.scale.y = gs;
-  //  player.nameText = game.add.bitmapText(
-  //    0, -14, 'fontOL', this.name, 16);
-  //  player.nameText.anchor.setTo(0.5, 1);
-  //  player.tint = this.color;
-  //  player.nameText.tint = this.nameCol;
-  //  player.addChild(player.nameText);
-  //  player.x = this.x;
-  //  player.y = this.y;
-  //
-  //  // Set up animations
-  //  player.animations.add('down', [0,1,0,2], 10,  true);
-  //  player.animations.add('left', [5,3,5,4], 10, true);
-  //  player.animations.add('right', [6,7,6,8], 10, true);
-  //  player.animations.add('up', [9,10,9,11], 10, true);
-  //  game[this.name] = player;
-  //  this.game = game;
-  //};
-  //Player.prototype.movePlayer = function() {
-  //
-  //  var speed = 200;
-  //  this.player.body.velocity.x = 0;
-  //  this.player.body.velocity.y = 0;
-  //
-  //
-  //  if (this.game.cursor.up.isDown) {
-  //    this.player.body.velocity.y = -speed;
-  //    this.player.facingDir = 1;
-  //  } else if (this.game.cursor.down.isDown) {
-  //    this.player.body.velocity.y = speed;
-  //    this.player.facingDir = 3;
-  //  }
-  //  if (this.game.cursor.left.isDown) {
-  //    this.player.body.velocity.x = -speed;
-  //    this.player.facingDir = 4;
-  //  } else if (this.game.cursor.right.isDown) {
-  //    this.player.body.velocity.x = speed;
-  //    this.player.facingDir = 2;
-  //  }
-  //  switch (this.player.facingDir) {
-  //    case 1: this.player.animations.play('up'); break;
-  //    case 2: this.player.animations.play('right'); break;
-  //    case 3: this.player.animations.play('down'); break;
-  //    case 4: this.player.animations.play('left'); break;
-  //    default: this.player.animations.play('down');
-  //  }
-  //  if (!this.player.body.velocity.x && !this.player.body.velocity.y) {
-  //    this.player.animations.stop(); // Stop the animation
-  //    // Set the player frame to stand still
-  //    switch (this.player.facingDir) {
-  //      case 1: this.player.frame = 9; break;
-  //      case 2: this.player.frame = 6; break;
-  //      case 3: this.player.frame = 0; break;
-  //      case 4: this.player.frame = 5; break;
-  //      default: this.player.frame = 0;
-  //    }
-  //  }
-  //};
 
 });
 
