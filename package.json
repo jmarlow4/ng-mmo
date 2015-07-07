@@ -5,14 +5,14 @@
   "main": "app.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jazun33/ng-mmo.git"
+    "url": "git+https://github.com/jmarlow4/ng-mmo.git"
   },
   "author": "Jason Marlow",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/jazun33/ng-mmo/issues"
+    "url": "https://github.com/jmarlow4/ng-mmo/issues"
   },
-  "homepage": "https://github.com/jazun33/ng-mmo#readme",
+  "homepage": "https://github.com/jmarlow4/ng-mmo#readme",
   "scripts": {
     "start": "node ./bin/www"
   },

@@ -1,7 +1,7 @@
 {
-  "name": "roguelands-client",
+  "name": "ng-mmo-client",
   "version": "0.0.0",
-  "homepage": "https://github.com/jazun33/roguelands",
+  "homepage": "https://github.com/jmarlow4/ng-mmo",
   "authors": [
     "Jason Marlow <jasonmarlow@gmail.com>"
   ],
