@@ -45,8 +45,9 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
 
       //text
       underText = game.add.bitmapText(
-        game.defPos.x, game.defPos.y - 30 * gs, 'fontW', 'Loading...', 16 * gs);
+        game.defPos.x, game.defPos.y - 20 * gs, 'fontW', 'Loading...', 16 * gs);
       underText.anchor.setTo(0.5, 0.5);
+      underText.align = 'center';
       game.state.start('load', false);
     }
   };
@@ -79,6 +80,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.load.spritesheet('guy', 'js/game/assets/guy.png', 16, 24);
       game.load.image('colorBtn', 'js/game/assets/chngColorBTN.png');
       game.load.image('enterBtn', 'js/game/assets/enterBTN.png');
+      game.load.image('guestBtn', 'js/game/assets/guestBTN.png');
     },
     create: function() {
       game.state.start('title', false);
@@ -90,38 +92,63 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       progText.kill();
       game.progFrame.kill();
       game.progBar.kill();
-    },
-    update: function () {
+
       if (!$rootScope.currentUser) {
-        underText.setText('Please log in...');
+        underText.setText('Please log in...\n\nor');
+
+        game.guestBtn = game.add.sprite(game.defPos.x, game.defPos.y + 10 * gs, 'guestBtn');
+        game.guestBtn.anchor.setTo(0.5, 0.5);
+        game.guestBtn.scale.x = gs;
+        game.guestBtn.scale.y = gs;
+        game.guestBtn.inputEnabled = true;
+        game.guestBtn.buttonMode = true;
+        game.guestBtn.events.onInputDown.add(function(){
+          game.state.start('menu', false);
+        });
+
 
       } else {
         game.state.start('menu', false);
       }
+    },
+    update: function () {
+
     }
   };
 
   var menuState = {
     create: function () {
+      var charCreatorName;
       underText.destroy();
+
+      if (game.guestBtn) {
+        game.guestBtn.destroy();
+      }
+
+      //Check to see if
+      if (!$rootScope.currentUser) {
+        game.guestBtn.destroy();
+        charCreatorName = prompt('Enter a user name');
+      } else {
+        charCreatorName = $rootScope.currentUser.username;
+      }
 
       game.charCreator = game.add.sprite(game.defPos.x, game.defPos.y, 'guy', 0);
       game.charCreator.nameText = game.add.bitmapText(
-        0, -14, 'fontOL', $rootScope.currentUser.username, 16);
+        0, -14, 'fontOL', charCreatorName, 16);
       game.charCreator.nameText.anchor.setTo(0.5, 1);
       game.charCreator.addChild(game.charCreator.nameText);
       game.charCreator.anchor.setTo(0.5, 0.5);
       game.charCreator.scale.x = gs;
       game.charCreator.scale.y = gs;
 
-      setUpButtons();
+      setUpButtons(charCreatorName);
     }
   };
 
   var playState = {
     create: function () {
 
-      this.lastFrameTime;
       game.logo.destroy();
       game.colorBtn.destroy();
       game.enterBtn.destroy();
@@ -354,11 +381,11 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
     });
   };
 
-  var setUpButtons = function() {
+  var setUpButtons = function(username) {
 
     // Set up empty character object to create player with and send to the server
     char = {
-      name: $rootScope.currentUser.username,
+      name: username,
       color: 0xffffff,
       nameCol: 0xffffff,
       x: Math.floor((Math.random() * (296 - 24 + 1)) + 24) * gs,
