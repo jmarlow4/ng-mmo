@@ -1,18 +1,18 @@
 {
-  "name": "roguelands",
+  "name": "ng-mmo",
   "version": "0.0.1",
-  "description": "A real-time, multiplayer, action-adventure roguelike",
+  "description": "Node, Express, MongoDB, and Angular multiplayer game platform",
   "main": "app.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jazun33/roguelands.git"
+    "url": "git+https://github.com/jazun33/ng-mmo.git"
   },
   "author": "Jason Marlow",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/jazun33/roguelands/issues"
+    "url": "https://github.com/jazun33/ng-mmo/issues"
   },
-  "homepage": "https://github.com/jazun33/roguelands#readme",
+  "homepage": "https://github.com/jazun33/ng-mmo#readme",
   "scripts": {
     "start": "node ./bin/www"
   },

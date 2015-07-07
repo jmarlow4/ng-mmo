@@ -25,7 +25,7 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
       game.stage.disableVisibilityChange = true;
 
       game.stage.backgroundColor = '#0b0b0b';
-      game.load.image('logo', 'js/game/assets/rl-logo-small.png');
+      game.load.image('logo', 'js/game/assets/ng-mmo-logo-small.png');
       game.load.spritesheet('progBar', 'js/game/assets/progressBar.png',202,12,2);
       game.load.bitmapFont('fontW', 'js/game/assets/fonts/nt_white.png', 'js/game/assets/fonts/nt_white.fnt');
 
@@ -411,7 +411,3 @@ angular.module('rl-app').service('game', function($rootScope, socketFactory) {
   };
 
 });
-
-
-
-
