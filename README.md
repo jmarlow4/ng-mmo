@@ -11,3 +11,6 @@ Open your terminal and run <pre><code>npm install</pre></code> and <pre><code>bo
 
 ### Quick note
 I've avoided the use of generators and task runners specifcally to help people see exactly what's going on. This platform was created to be a starting point that even beginners can use to build multiplayer games with Node, Angular, and Phaser without too much work setting up. And you don't even have to use Phaser. This platform is game framework-agnostic.
+
+### Demo
+[Check it out here](http://ng-mmo.cloudapp.net/)
