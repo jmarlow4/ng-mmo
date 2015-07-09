@@ -13,9 +13,6 @@
     "url": "https://github.com/jmarlow4/ng-mmo/issues"
   },
   "homepage": "https://github.com/jmarlow4/ng-mmo#readme",
-  "scripts": {
-    "start": "node ./bin/www"
-  },
   "dependencies": {
     "body-parser": "~1.12.4",
     "connect-flash": "^0.1.1",
