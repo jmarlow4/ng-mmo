@@ -6,6 +6,9 @@ The ng-mmo platform, including the back end Node server, the front end Angular a
 
 This is based off of DaftMonk's [Angular-Passport](https://github.com/DaftMonk/angular-passport) project, Krimple's [Angular-Flavored-Chat](https://github.com/krimple/angular-socketio-chat) project, and ahung89's [Bomb-Arena](https://github.com/ahung89/bomb-arena) game.
 
+### Before you set up
+Make sure you have MongoDB installed and running on it's default port.
+
 ### Setting up
 Open your terminal and run <pre><code>npm install</pre></code> and <pre><code>bower install</pre></code> in the console. To start it up enter <pre><code>node server</pre></code> and it'll run in http://localhost:8000
 
